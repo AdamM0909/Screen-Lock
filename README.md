@@ -6,6 +6,8 @@ one homework site, or for locking the browser at bedtime.
 
 Works in Chrome on Windows, Mac and Chromebook. Also works in Edge and Brave.
 
+> **Want to lock the whole PC, games included?** See [`desktop/`](desktop/README.md) for Screen Lock for Windows.
+
 ## What's new in v2
 
 | Feature | What it does |
