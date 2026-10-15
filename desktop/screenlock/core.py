@@ -43,6 +43,7 @@ def new_config():
         "skip": {},              # schedule id -> window end timestamp that was unlocked early
         "schedules": [],
         "message": "This computer is locked.",
+        "image": None,           # file name of the lock screen picture inside the config folder
         "theme": "Gold",
         "clock24": False,
         "log": [],

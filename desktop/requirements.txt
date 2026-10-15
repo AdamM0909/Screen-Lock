@@ -1,1 +1,2 @@
 segno>=1.6
+pillow>=10

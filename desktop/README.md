@@ -6,7 +6,7 @@ schedule and phone-code ideas.
 
 ## What it does while locked
 
-- Covers every monitor with a full-screen lock screen (clock, date, countdown, your message, five color themes).
+- Covers every monitor with a full-screen lock screen (clock, date, countdown, your message, an optional picture, five color themes).
 - Minimizes every other program, including games. Nothing is closed, so nothing is lost.
 - Blocks the Windows key, Alt+Tab, Alt+Esc, Alt+F4, Alt+Space and Ctrl+Esc.
 - Greys out Task Manager for your Windows user, so the lock can't be ended from there.
@@ -19,8 +19,8 @@ schedule and phone-code ideas.
 ## Install
 
 1. Install Python 3.10 or newer from python.org (tick **Add python.exe to PATH**), or skip this and use the exe below.
-2. Open this `desktop` folder in a terminal and run `py -m pip install -r requirements.txt` (only used to draw the
-   phone setup QR code).
+2. Open this `desktop` folder in a terminal and run `py -m pip install -r requirements.txt` (draws the phone setup QR code and
+   lets you use JPG pictures on the lock screen).
 3. Double-click `run_screenlock.pyw`. The first time, choose a password and write down the **recovery code** it shows.
 4. In **Settings**, turn on **Start with Windows**.
 
@@ -28,6 +28,8 @@ To make a single `ScreenLock.exe` that needs no Python, run `build.bat`. The exe
 
 ## Use it
 
+- **Lock screen picture:** Settings → Lock screen picture → Choose. PNG and GIF always work; JPG and others need
+  Pillow (installed by the requirements step). Remove clears it. The message text is on the Lock now tab.
 - **Lock now:** pick a time on the first tab. Walk away.
 - **Unlock:** just start typing on the lock screen, then press Enter.
 - **Phone unlock:** Phone unlock tab, scan the QR code with an authenticator app, type the code to confirm.
