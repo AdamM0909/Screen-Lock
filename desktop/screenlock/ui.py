@@ -1,7 +1,9 @@
 """Windows and dialogs (tkinter, which ships with Python)."""
 import csv
 import datetime as dt
+import math
 import os
+import shutil
 import sys
 import time
 import tkinter as tk
@@ -10,6 +12,26 @@ from tkinter import filedialog, messagebox, ttk
 from . import core, winguard
 
 FONT = "Segoe UI"
+IMAGE_TYPES = [("Pictures", "*.png *.jpg *.jpeg *.gif *.bmp *.webp"), ("All files", "*.*")]
+
+
+def load_lock_image(path, max_w, max_h):
+    """Load a picture scaled to fit. Pillow handles JPG and friends; without it only PNG and GIF work."""
+    try:
+        from PIL import Image, ImageTk
+        im = Image.open(path)
+        im.thumbnail((max_w, max_h))
+        return ImageTk.PhotoImage(im)
+    except ImportError:
+        pass
+    except Exception:
+        return None
+    try:
+        photo = tk.PhotoImage(file=path)
+        factor = math.ceil(max(photo.width() / max_w, photo.height() / max_h))
+        return photo.subsample(factor) if factor > 1 else photo
+    except tk.TclError:
+        return None
 
 
 def ask_secret(parent, store, title="Screen Lock", prompt="Enter the password or a phone code"):
@@ -72,6 +94,12 @@ class LockScreen:
         self.clock.pack()
         self.date = tk.Label(box, bg=self.bg, fg=self.fg, font=(FONT, 20))
         self.date.pack(pady=(0, 24))
+        self.photo = None
+        name = store.get("image")
+        if name:
+            self.photo = load_lock_image(os.path.join(app.store.dir, name), 520, max(160, ph // 3))
+        if self.photo:
+            tk.Label(box, image=self.photo, bg=self.bg, bd=0).pack(pady=(0, 18))
         self.msg = tk.Label(box, bg=self.bg, fg="#ffffff", font=(FONT, 18), wraplength=700)
         self.msg.pack(pady=(0, 18))
         self.bar = tk.Canvas(box, width=420, height=8, bg="#2a2a2a", highlightthickness=0)
@@ -513,18 +541,26 @@ class App:
         self.autostart = tk.BooleanVar(value=winguard.autostart_enabled())
         ttk.Checkbutton(f, text="Start with Windows (needed for schedules and to relock after a restart)",
                         variable=self.autostart).grid(row=2, column=0, columnspan=2, sticky="w", pady=4)
-        ttk.Button(f, text="Save settings", command=self.save_settings).grid(row=3, column=0, pady=10, sticky="w")
-        ttk.Separator(f).grid(row=4, column=0, columnspan=3, sticky="ew", pady=10)
-        ttk.Label(f, text="New password").grid(row=5, column=0, sticky="w")
+        pic = ttk.Frame(f)
+        pic.grid(row=3, column=0, columnspan=3, sticky="w", pady=4)
+        ttk.Label(pic, text="Lock screen picture").pack(side="left")
+        ttk.Button(pic, text="Choose...", command=self.choose_image).pack(side="left", padx=6)
+        ttk.Button(pic, text="Remove", command=self.clear_image).pack(side="left")
+        self.image_lbl = ttk.Label(pic, text="")
+        self.image_lbl.pack(side="left", padx=8)
+        self.refresh_image_label()
+        ttk.Button(f, text="Save settings", command=self.save_settings).grid(row=4, column=0, pady=10, sticky="w")
+        ttk.Separator(f).grid(row=5, column=0, columnspan=3, sticky="ew", pady=10)
+        ttk.Label(f, text="New password").grid(row=6, column=0, sticky="w")
         self.pw1 = ttk.Entry(f, show="•", width=22)
-        self.pw1.grid(row=5, column=1, pady=2)
-        ttk.Label(f, text="Again").grid(row=6, column=0, sticky="w")
+        self.pw1.grid(row=6, column=1, pady=2)
+        ttk.Label(f, text="Again").grid(row=7, column=0, sticky="w")
         self.pw2 = ttk.Entry(f, show="•", width=22)
-        self.pw2.grid(row=6, column=1, pady=2)
-        ttk.Button(f, text="Change password", command=self.change_password).grid(row=7, column=0, pady=8, sticky="w")
-        ttk.Button(f, text="Make a new recovery code", command=self.new_recovery).grid(row=7, column=1, sticky="w")
-        ttk.Separator(f).grid(row=8, column=0, columnspan=3, sticky="ew", pady=10)
-        ttk.Button(f, text="Quit Screen Lock", command=self.quit).grid(row=9, column=0, sticky="w")
+        self.pw2.grid(row=7, column=1, pady=2)
+        ttk.Button(f, text="Change password", command=self.change_password).grid(row=8, column=0, pady=8, sticky="w")
+        ttk.Button(f, text="Make a new recovery code", command=self.new_recovery).grid(row=8, column=1, sticky="w")
+        ttk.Separator(f).grid(row=9, column=0, columnspan=3, sticky="ew", pady=10)
+        ttk.Button(f, text="Quit Screen Lock", command=self.quit).grid(row=10, column=0, sticky="w")
 
     def save_settings(self):
         d = self.store.data
@@ -532,6 +568,39 @@ class App:
         self.store.save()
         winguard.set_autostart(self.autostart_command() if self.autostart.get() else None)
         messagebox.showinfo("Screen Lock", "Saved.")
+
+    def refresh_image_label(self):
+        self.image_lbl.config(text="(picture set)" if self.store.data.get("image") else "(none)")
+
+    def choose_image(self):
+        path = filedialog.askopenfilename(title="Pick a lock screen picture", filetypes=IMAGE_TYPES)
+        if not path:
+            return
+        if load_lock_image(path, 100, 100) is None:
+            return messagebox.showerror(
+                "Screen Lock", "Could not read that picture. PNG and GIF always work. For JPG and others run "
+                "'py -m pip install pillow' and restart Screen Lock.")
+        self.clear_image(quiet=True)
+        name = "lock_image" + os.path.splitext(path)[1].lower()
+        os.makedirs(self.store.dir, exist_ok=True)
+        shutil.copyfile(path, os.path.join(self.store.dir, name))
+        self.store.data["image"] = name
+        self.store.log("picture_set", "")
+        self.store.save()
+        self.refresh_image_label()
+
+    def clear_image(self, quiet=False):
+        name = self.store.data.get("image")
+        if name:
+            try:
+                os.remove(os.path.join(self.store.dir, name))
+            except OSError:
+                pass
+            self.store.data["image"] = None
+            if not quiet:
+                self.store.log("picture_removed", "")
+            self.store.save()
+        self.refresh_image_label()
 
     def autostart_command(self):
         if getattr(sys, "frozen", False):
