@@ -1,0 +1,14 @@
+{
+  "name": "tab-lock",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Chrome extension that locks the browser to one tab, one site or a lock screen until a password or phone code is entered.",
+  "scripts": {
+    "test": "node tests/run-tests.js",
+    "check": "for f in extension/*.js; do node --check \"$f\" || exit 1; done && node -e \"JSON.parse(require('fs').readFileSync('extension/manifest.json','utf8'))\""
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

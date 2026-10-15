@@ -1,0 +1,126 @@
+/* Full lock screen (lockscreen.html) and the small unlock box (unlock.html). */
+
+html, body { height: 100%; }
+
+body.ls {
+  overflow: hidden;
+  background:
+    radial-gradient(1200px 700px at 50% 115%, var(--accent-soft), transparent 70%),
+    radial-gradient(900px 500px at 50% -20%, rgba(255, 255, 255, 0.04), transparent 70%),
+    var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+/* faint dot grid */
+body.ls::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+  pointer-events: none;
+}
+
+.ls-clock {
+  font-size: clamp(64px, 13vw, 150px);
+  font-weight: 200;
+  letter-spacing: -2px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 40px var(--accent-soft);
+}
+.ls-date {
+  color: var(--muted);
+  font-size: clamp(14px, 1.6vw, 18px);
+  margin-top: 10px;
+  letter-spacing: 0.5px;
+}
+
+.ls-card {
+  position: relative;
+  margin-top: clamp(28px, 5vh, 56px);
+  width: min(400px, calc(100vw - 32px));
+  background: rgba(23, 26, 33, 0.82);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px 22px 18px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  user-select: text;
+}
+
+.ls-lock {
+  width: 54px;
+  height: 54px;
+  margin: -52px auto 10px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--accent);
+  box-shadow: 0 0 0 6px var(--accent-soft);
+  color: var(--accent);
+}
+.ls-lock svg { width: 24px; height: 24px; }
+
+.ls-title { font-size: 18px; font-weight: 650; margin: 0; }
+.ls-sub { color: var(--muted); font-size: 13px; margin-top: 4px; word-break: break-word; }
+.ls-message {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-soft);
+  border-radius: 6px;
+  text-align: left;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ls-timer { margin-top: 16px; }
+.ls-timer .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; }
+.ls-timer .value { font-size: 28px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.ls-bar { height: 4px; border-radius: 4px; background: var(--line); margin-top: 8px; overflow: hidden; }
+.ls-bar > div { height: 100%; width: 0; background: var(--accent); transition: width 1s linear; }
+
+.ls-form { margin-top: 18px; display: flex; gap: 8px; }
+.ls-form input { margin: 0; flex: 1; text-align: center; letter-spacing: 1px; }
+.ls-form button { width: auto; padding: 0 18px; }
+.ls-hint { color: var(--faint); font-size: 12px; margin-top: 10px; }
+
+.ls-card.shake { animation: shake 0.35s; }
+@keyframes shake {
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(7px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(3px); }
+}
+
+.ls-footer {
+  position: fixed;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--faint);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Small unlock box (popup window) */
+body.ls.compact .ls-clock { font-size: 48px; }
+body.ls.compact .ls-date { font-size: 13px; margin-top: 6px; }
+body.ls.compact .ls-card { margin-top: 44px; padding: 22px 16px 14px; }
+body.ls.compact .ls-timer .value { font-size: 22px; }
+body.ls.compact .ls-footer { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-card.shake { animation: none; }
+  .ls-bar > div { transition: none; }
+}

@@ -1,0 +1,80 @@
+<!doctype html>
+<html data-theme="gold">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="bar">
+      <img src="icons/icon48.png" alt="">
+      <h1>Tab Lock</h1>
+      <span id="status" class="status">Unlocked</span>
+    </header>
+
+    <!-- First run: create a password -->
+    <section id="setup" class="hidden">
+      <div class="card">
+        <div class="target-title">Create a password</div>
+        <div class="target-url">You will need it to unlock and to open settings. At least 4 characters.</div>
+        <input id="newPw" type="password" placeholder="Password" autocomplete="new-password">
+        <input id="newPw2" type="password" placeholder="Type it again" autocomplete="new-password">
+        <button id="savePw">Save password</button>
+        <div id="setupMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <!-- Ready to lock -->
+    <section id="ready" class="hidden">
+      <div class="card">
+        <h2>Lock to</h2>
+        <label class="opt"><input type="radio" name="mode" value="page" checked>
+          <span>Only this page<small id="pageHint">Clicking a link sends it back here.</small></span></label>
+        <label class="opt"><input type="radio" name="mode" value="site">
+          <span>Anywhere on this website<small id="siteHint">Good for games and sites that change pages.</small></span></label>
+        <label class="opt"><input type="radio" name="mode" value="screen">
+          <span>Lock screen only<small>Nothing usable until unlocked. Good for bedtime or homework.</small></span></label>
+      </div>
+
+      <div class="card">
+        <h2>For how long</h2>
+        <div class="chips" id="durations">
+          <button class="chip on" data-min="0">Until unlocked</button>
+          <button class="chip" data-min="15">15 min</button>
+          <button class="chip" data-min="30">30 min</button>
+          <button class="chip" data-min="60">1 hr</button>
+          <button class="chip" data-min="120">2 hr</button>
+          <button class="chip" data-min="custom">Custom</button>
+        </div>
+        <input id="customMin" class="hidden" type="number" min="1" max="1440" placeholder="Minutes (1 to 1440)">
+        <label class="opt" style="margin-top:6px"><input type="checkbox" id="fullscreen">
+          <span>Fullscreen while locked<small>Hides the tab bar and address bar.</small></span></label>
+        <input id="message" type="text" maxlength="140" placeholder="Message on the lock screen (optional)">
+      </div>
+
+      <button id="lockBtn">Lock</button>
+      <div id="readyMsg" class="msg"></div>
+      <button id="settingsBtn" class="ghost" style="margin-top:4px">Schedules, phone unlock, log and settings</button>
+    </section>
+
+    <!-- Locked -->
+    <section id="locked" class="hidden">
+      <div class="card">
+        <h2 id="lockedHeading">Locked to</h2>
+        <div class="target-title" id="lockedTitle"></div>
+        <div class="target-url" id="lockedUrl"></div>
+        <div id="lockedTimer" class="hidden">
+          <div class="hint" id="lockedTimerLabel">Unlocks in</div>
+          <div class="countdown" id="lockedCountdown"></div>
+        </div>
+      </div>
+      <input id="unlockPw" type="password" placeholder="Password or phone code" autocomplete="current-password">
+      <button id="unlockBtn">Unlock</button>
+      <div id="unlockMsg" class="msg"></div>
+      <div class="hint">In fullscreen, press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Y</kbd> to open the unlock box.</div>
+    </section>
+  </div>
+  <script src="lib.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

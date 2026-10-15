@@ -1,0 +1,45 @@
+<!doctype html>
+<html data-theme="gold">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Locked</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="lockscreen.css">
+</head>
+<body class="ls">
+  <div class="ls-clock" id="clock">--:--</div>
+  <div class="ls-date" id="date"></div>
+
+  <main class="ls-card" id="card">
+    <div class="ls-lock" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="11" width="16" height="10" rx="2"></rect>
+        <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+      </svg>
+    </div>
+    <h1 class="ls-title" id="title">Locked</h1>
+    <div class="ls-sub" id="sub"></div>
+    <div class="ls-message hidden" id="message"></div>
+
+    <div class="ls-timer hidden" id="timer">
+      <div class="label" id="timerLabel">Unlocks in</div>
+      <div class="value" id="timerValue">0:00</div>
+      <div class="ls-bar"><div id="timerBar"></div></div>
+    </div>
+
+    <form class="ls-form" id="form" autocomplete="off">
+      <input id="pw" type="password" placeholder="Password or phone code" aria-label="Password or phone code" autofocus>
+      <button id="go" type="submit">Unlock</button>
+    </form>
+    <div class="msg" id="msg" role="status"></div>
+    <div class="ls-hint" id="hint">Use the password, or the 6-digit code from the phone app.</div>
+  </main>
+
+  <div class="ls-footer">Tab Lock</div>
+
+  <script src="lib.js"></script>
+  <script src="lockscreen.js"></script>
+</body>
+</html>

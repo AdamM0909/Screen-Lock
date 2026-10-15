@@ -1,0 +1,203 @@
+<!doctype html>
+<html data-theme="gold">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tab Lock settings</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body class="opts">
+  <header class="top">
+    <img src="icons/icon48.png" alt="">
+    <h1>Tab Lock</h1>
+    <nav id="nav" class="hidden">
+      <a href="#schedules">Schedules</a>
+      <a href="#look">Lock screen</a>
+      <a href="#phone">Phone unlock</a>
+      <a href="#log">Usage log</a>
+      <a href="#password">Password</a>
+    </nav>
+  </header>
+
+  <!-- Password gate -->
+  <section id="gate" class="gate hidden">
+    <div class="card">
+      <h2>Settings are protected</h2>
+      <p class="hint" id="gateText">Enter the password to change schedules, phone unlock and the log.</p>
+      <form id="gateForm" autocomplete="off">
+        <input id="gatePw" type="password" placeholder="Password" autofocus>
+        <button type="submit">Open settings</button>
+      </form>
+      <div id="gateMsg" class="msg"></div>
+    </div>
+  </section>
+
+  <main id="main" class="hidden">
+
+    <!-- Schedules -->
+    <section id="schedules" class="block">
+      <div class="block-head">
+        <div>
+          <h2>Schedules</h2>
+          <p class="hint">Lock automatically on certain days and times. The lock ends by itself when the time is up.
+            If someone unlocks early with the password, it stays unlocked until that window ends.</p>
+        </div>
+        <button id="addSched" class="small">Add schedule</button>
+      </div>
+      <div id="schedList"></div>
+
+      <div id="schedForm" class="card hidden">
+        <h3 id="schedFormTitle">New schedule</h3>
+        <label class="field">Name
+          <input id="sName" type="text" maxlength="40" placeholder="Bedtime, Homework, School nights">
+        </label>
+        <div class="field">Days
+          <div class="chips" id="sDays"></div>
+        </div>
+        <div class="row">
+          <label class="field">From <input id="sStart" type="time" value="21:00"></label>
+          <label class="field">Until <input id="sEnd" type="time" value="07:00"></label>
+        </div>
+        <p class="hint" id="sOvernight"></p>
+        <label class="field">Lock to
+          <select id="sKind">
+            <option value="screen">Lock screen only (nothing usable)</option>
+            <option value="page">One page</option>
+            <option value="site">One website</option>
+          </select>
+        </label>
+        <label class="field hidden" id="sUrlWrap">Address
+          <input id="sUrl" type="url" placeholder="https://www.khanacademy.org/">
+        </label>
+        <label class="field">Message on the lock screen (optional)
+          <input id="sMessage" type="text" maxlength="140" placeholder="Lights out. See you in the morning.">
+        </label>
+        <label class="opt"><input type="checkbox" id="sFull"><span>Fullscreen while locked</span></label>
+        <label class="opt"><input type="checkbox" id="sEnabled" checked><span>Turned on</span></label>
+        <div class="row actions">
+          <button id="sSave">Save schedule</button>
+          <button id="sCancel" class="ghost">Cancel</button>
+        </div>
+        <div id="sMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <!-- Look -->
+    <section id="look" class="block">
+      <h2>Lock screen</h2>
+      <p class="hint">Color theme, clock style and the default message on the lock screen and unlock box.</p>
+      <div class="card">
+        <div class="field">Theme
+          <div class="chips" id="themes"></div>
+        </div>
+        <label class="opt"><input type="checkbox" id="clock24"><span>24-hour clock</span></label>
+        <label class="field">Default message (optional)
+          <input id="defMessage" type="text" maxlength="140" placeholder="Ask me to unlock.">
+        </label>
+        <div class="row actions">
+          <button id="saveLook">Save</button>
+          <button id="previewLook" class="ghost">Preview the lock screen</button>
+        </div>
+        <div id="lookMsg" class="msg"></div>
+      </div>
+    </section>
+
+    <!-- Phone unlock -->
+    <section id="phone" class="block">
+      <h2>Phone unlock</h2>
+      <p class="hint">Get a 6-digit code from an authenticator app (Google Authenticator, Microsoft Authenticator,
+        2FAS, Authy and others). Type it to unlock, or text it to whoever is at the computer. Each code works once
+        and expires after 30 seconds, so the real password stays secret.</p>
+
+      <div id="phoneOff" class="card hidden">
+        <p>Phone unlock is <strong>off</strong>.</p>
+        <button id="phoneSetup" class="small">Set up phone unlock</button>
+      </div>
+
+      <div id="phoneSetupBox" class="card hidden">
+        <h3>1. Scan this with the authenticator app</h3>
+        <div class="qr-wrap">
+          <canvas id="qr" aria-label="QR code for the authenticator app"></canvas>
+          <div>
+            <p class="hint">Can't scan? In the app choose "Enter a setup key" and type:</p>
+            <code id="secretText" class="secret"></code>
+            <p class="hint">Account name: Tab Lock. Type: time based.</p>
+          </div>
+        </div>
+        <h3>2. Type the code the app shows</h3>
+        <div class="row">
+          <input id="confirmCode" type="text" inputmode="numeric" maxlength="6" placeholder="123456">
+          <button id="confirmBtn" class="small">Turn on</button>
+        </div>
+        <button id="cancelSetup" class="ghost small">Cancel</button>
+        <div id="setupMsg" class="msg"></div>
+      </div>
+
+      <div id="phoneOn" class="card hidden">
+        <p>Phone unlock is <strong class="on-text">on</strong>.</p>
+        <div class="row">
+          <input id="testCode" type="text" inputmode="numeric" maxlength="6" placeholder="Test a code">
+          <button id="testBtn" class="small ghost">Test</button>
+        </div>
+        <div id="testMsg" class="msg"></div>
+        <div class="row actions">
+          <button id="phoneReset" class="ghost small">Set up a new phone</button>
+          <button id="phoneDisable" class="danger small">Turn off</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Log -->
+    <section id="log" class="block">
+      <div class="block-head">
+        <div>
+          <h2>Usage log</h2>
+          <p class="hint">Locks, unlocks, wrong passwords and escape attempts (new tabs, other windows, leaving
+            the page, closing the tab, leaving fullscreen). Keeps the latest 1,000 events on this computer only.</p>
+        </div>
+      </div>
+      <div class="stats" id="stats"></div>
+      <div class="card">
+        <div class="row log-tools">
+          <select id="logFilter">
+            <option value="all">All events</option>
+            <option value="locks">Locks and unlocks</option>
+            <option value="escapes">Escape attempts</option>
+            <option value="wrong">Wrong passwords</option>
+          </select>
+          <button id="exportCsv" class="ghost small">Export CSV</button>
+          <button id="clearLog" class="danger small">Clear log</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>When</th><th>Event</th><th>Details</th></tr></thead>
+            <tbody id="logBody"></tbody>
+          </table>
+        </div>
+        <p class="hint" id="logEmpty">Nothing logged yet.</p>
+      </div>
+    </section>
+
+    <!-- Password -->
+    <section id="password" class="block">
+      <h2>Password</h2>
+      <div class="card narrow">
+        <input id="oldPw" type="password" placeholder="Current password" autocomplete="current-password">
+        <input id="chgPw" type="password" placeholder="New password" autocomplete="new-password">
+        <input id="chgPw2" type="password" placeholder="New password again" autocomplete="new-password">
+        <button id="chgBtn">Change password</button>
+        <div id="chgMsg" class="msg"></div>
+        <p class="hint">Forgot it? Remove the extension and load it again. That resets everything.</p>
+      </div>
+    </section>
+
+    <footer class="foot">Settings close themselves after 10 minutes. <a href="#" id="lockSettings">Close now</a></footer>
+  </main>
+
+  <script src="lib.js"></script>
+  <script src="qr.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
