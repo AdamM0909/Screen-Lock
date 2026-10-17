@@ -13,6 +13,7 @@ import re
 import secrets
 import struct
 import tempfile
+import threading
 import time
 
 MAX_FAILS = 5
@@ -43,6 +44,7 @@ def new_config():
         "skip": {},              # schedule id -> window end timestamp that was unlocked early
         "schedules": [],
         "message": "This computer is locked.",
+        "remote": {"enabled": False, "port": 8765},
         "image": None,           # file name of the lock screen picture inside the config folder
         "theme": "Gold",
         "clock24": False,
@@ -52,6 +54,7 @@ def new_config():
 
 class Store:
     def __init__(self, directory=None):
+        self.lock = threading.RLock()  # the phone page runs in another thread
         self.dir = directory or default_dir()
         self.path = os.path.join(self.dir, "config.json")
         self.data = new_config()
@@ -137,6 +140,11 @@ def otpauth_uri(secret, account="This PC", issuer="Screen Lock"):
 # ---------- unlocking ----------
 
 def check_secret(store, text, now=None):
+    with store.lock:
+        return _check_secret(store, text, now)
+
+
+def _check_secret(store, text, now=None):
     """Try text as password, recovery code or phone code.
 
     Returns (result, seconds_left). result is one of: password, recovery, code, wrong, cooldown.
@@ -212,6 +220,11 @@ def find_window(schedules, now_dt):
 
 
 def desired_lock(store, now=None):
+    with store.lock:
+        return _desired_lock(store, now)
+
+
+def _desired_lock(store, now=None):
     """What should the screen be doing right now? Returns a dict or None."""
     now = time.time() if now is None else now
     d = store.data
@@ -236,6 +249,11 @@ def desired_lock(store, now=None):
 
 
 def start_manual_lock(store, minutes=None, message=None, now=None):
+    with store.lock:
+        _start_manual_lock(store, minutes, message, now)
+
+
+def _start_manual_lock(store, minutes, message, now):
     now = time.time() if now is None else now
     until = None if not minutes else now + minutes * 60
     store.data["lock"] = {"active": True, "until": until, "start": now, "message": message or ""}
@@ -244,6 +262,11 @@ def start_manual_lock(store, minutes=None, message=None, now=None):
 
 
 def finish_unlock(store, lock, how, now=None):
+    with store.lock:
+        _finish_unlock(store, lock, how, now)
+
+
+def _finish_unlock(store, lock, how, now):
     """Record a successful unlock. Early unlock of a schedule skips that window only."""
     now = time.time() if now is None else now
     if lock["kind"] == "schedule":
