@@ -13,6 +13,7 @@ schedule and phone-code ideas.
 - Unlocks with the password, the emergency recovery code, or a phone code (any authenticator app). Phone codes work
   once and expire in 30 seconds, so you can text one to someone without sharing the password.
 - Five wrong tries start a one-minute cooldown.
+- **Lock from your phone** (same Wi-Fi): a small web page on the PC lets your phone start a lock. See below.
 - Remembers the lock across a restart: sign back in and it locks again (turn on **Start with Windows**).
 - Schedules (like school nights 9 PM to 7 AM), timed locks (15 min to custom), and a log you can export as CSV.
 
@@ -36,6 +37,21 @@ To make a single `ScreenLock.exe` that needs no Python, run `build.bat`. The exe
 - Closing the window minimizes it to the taskbar (it keeps running). Reopening it asks for the password again if
   it has been more than 10 minutes. **Settings → Quit** needs the password.
 
+## Lock it from your phone
+
+1. In **Settings**, tick **Let my phone LOCK this PC (same Wi-Fi only)** and click **Save settings**.
+2. The line under it shows an address like `http://192.168.1.23:8765`. Windows may ask to allow the program through
+   the firewall: choose **Private networks** and Allow.
+3. Open that address in your phone's browser (phone and PC on the same Wi-Fi) and add it to your home screen.
+4. Type your password or the current phone code, pick a time, tap it. The PC locks within a second.
+
+It can only **lock**. Unlocking happens at the PC. The page needs the password or a phone code for every action,
+five wrong tries trigger the same one-minute cooldown, and every try is written to the log with the sender's address.
+It works on your home network only. Anyone on that same Wi-Fi can open the page, but cannot do anything without the
+password or a code. The connection is plain http, so use it on a Wi-Fi you trust. Turn it off in Settings when you
+don't need it. Phones away from home can't reach it by design (that would need an internet relay, which this
+doesn't use).
+
 ## Honest limits
 
 This is a program, so the Windows sign-in is still stronger. Use both: press **Win + L** when you leave, and keep
@@ -58,7 +74,7 @@ your brother on his own standard account without a way to your password.
 ## Development
 
 ```
-python -m unittest discover -s tests     # core logic: passwords, phone codes (RFC 6238), schedules, timers
+python -m unittest discover -s tests     # passwords, phone codes (RFC 6238), schedules, timers, phone page
 ```
 
 The logic lives in `screenlock/core.py` and is tested anywhere. `winguard.py` (keyboard blocking, Task Manager,
