@@ -9,7 +9,7 @@ import time
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from . import core, winguard
+from . import core, remote, winguard
 
 FONT = "Segoe UI"
 IMAGE_TYPES = [("Pictures", "*.png *.jpg *.jpeg *.gif *.bmp *.webp"), ("All files", "*.*")]
@@ -186,6 +186,7 @@ class App:
         self.current = None
         self.authed_until = 0
         self.asking = False
+        self.remote = None
 
     # ----- lifecycle -----
     def run(self):
@@ -197,6 +198,7 @@ class App:
             if not self.authenticate():
                 return
         self.build_panel()
+        self.apply_remote()
         self.root.protocol("WM_DELETE_WINDOW", self.root.iconify)
         self.root.bind("<Map>", self.on_map)
         if core.desired_lock(self.store):
@@ -549,25 +551,50 @@ class App:
         self.image_lbl = ttk.Label(pic, text="")
         self.image_lbl.pack(side="left", padx=8)
         self.refresh_image_label()
-        ttk.Button(f, text="Save settings", command=self.save_settings).grid(row=4, column=0, pady=10, sticky="w")
-        ttk.Separator(f).grid(row=5, column=0, columnspan=3, sticky="ew", pady=10)
-        ttk.Label(f, text="New password").grid(row=6, column=0, sticky="w")
+        rem = ttk.Frame(f)
+        rem.grid(row=4, column=0, columnspan=3, sticky="w", pady=4)
+        self.remote_var = tk.BooleanVar(value=d["remote"]["enabled"])
+        ttk.Checkbutton(rem, text="Let my phone LOCK this PC (same Wi-Fi only)", variable=self.remote_var).pack(
+            anchor="w")
+        self.remote_lbl = ttk.Label(rem, text="", foreground="#666")
+        self.remote_lbl.pack(anchor="w")
+        ttk.Button(f, text="Save settings", command=self.save_settings).grid(row=5, column=0, pady=10, sticky="w")
+        ttk.Separator(f).grid(row=6, column=0, columnspan=3, sticky="ew", pady=10)
+        ttk.Label(f, text="New password").grid(row=7, column=0, sticky="w")
         self.pw1 = ttk.Entry(f, show="•", width=22)
-        self.pw1.grid(row=6, column=1, pady=2)
-        ttk.Label(f, text="Again").grid(row=7, column=0, sticky="w")
+        self.pw1.grid(row=7, column=1, pady=2)
+        ttk.Label(f, text="Again").grid(row=8, column=0, sticky="w")
         self.pw2 = ttk.Entry(f, show="•", width=22)
-        self.pw2.grid(row=7, column=1, pady=2)
-        ttk.Button(f, text="Change password", command=self.change_password).grid(row=8, column=0, pady=8, sticky="w")
-        ttk.Button(f, text="Make a new recovery code", command=self.new_recovery).grid(row=8, column=1, sticky="w")
-        ttk.Separator(f).grid(row=9, column=0, columnspan=3, sticky="ew", pady=10)
-        ttk.Button(f, text="Quit Screen Lock", command=self.quit).grid(row=10, column=0, sticky="w")
+        self.pw2.grid(row=8, column=1, pady=2)
+        ttk.Button(f, text="Change password", command=self.change_password).grid(row=9, column=0, pady=8, sticky="w")
+        ttk.Button(f, text="Make a new recovery code", command=self.new_recovery).grid(row=9, column=1, sticky="w")
+        ttk.Separator(f).grid(row=10, column=0, columnspan=3, sticky="ew", pady=10)
+        ttk.Button(f, text="Quit Screen Lock", command=self.quit).grid(row=11, column=0, sticky="w")
 
     def save_settings(self):
         d = self.store.data
         d["theme"], d["clock24"], d["message"] = self.theme.get(), self.clock24.get(), self.msg_var.get()
+        d["remote"]["enabled"] = self.remote_var.get()
         self.store.save()
+        self.apply_remote()
         winguard.set_autostart(self.autostart_command() if self.autostart.get() else None)
         messagebox.showinfo("Screen Lock", "Saved.")
+
+    def apply_remote(self):
+        """Start or stop the phone page to match the setting."""
+        if self.remote:
+            self.remote.stop()
+            self.remote = None
+        text = "Off."
+        if self.store.data["remote"]["enabled"]:
+            try:
+                self.remote = remote.RemoteServer(self.store, self.store.data["remote"]["port"])
+                self.remote.start()
+                text = f"On your phone's browser, open: {self.remote.url()}"
+            except OSError:
+                text = "Could not start (is another copy running, or is the port in use?)."
+        if hasattr(self, "remote_lbl"):
+            self.remote_lbl.config(text=text)
 
     def refresh_image_label(self):
         self.image_lbl.config(text="(picture set)" if self.store.data.get("image") else "(none)")
@@ -630,6 +657,8 @@ class App:
     def quit(self):
         if ask_secret(self.root, self.store, prompt="Enter the password to quit"):
             winguard.set_task_manager_disabled(False)
+            if self.remote:
+                self.remote.stop()
             self.root.destroy()
 
     def build_log_tab(self, nb):
